@@ -1,0 +1,9 @@
+DROP VIEW IF EXISTS comments_view;
+DROP VIEW IF EXISTS messages_view;
+
+ALTER TABLE comments DROP COLUMN IF EXISTS event_id;
+ALTER TABLE messages DROP COLUMN IF EXISTS event_id;
+
+ALTER TABLE events DROP COLUMN IF EXISTS aggregate_id;
+ALTER TABLE events DROP COLUMN IF EXISTS aggregate_type;
+ALTER TABLE events DROP COLUMN IF EXISTS channel;

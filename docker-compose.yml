@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: meta
+      POSTGRES_PASSWORD: meta
+      POSTGRES_DB: meta_gateway
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./seed:/seed:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meta -d meta_gateway"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.18.2
+    volumes:
+      - ./migrations:/migrations:ro
+    command:
+      - "-path=/migrations"
+      - "-database=postgres://meta:meta@postgres:5432/meta_gateway?sslmode=disable"
+      - "up"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  webhook-catcher:
+    image: mendhak/http-https-echo:31
+    ports:
+      - "8090:8080"
+    environment:
+      HTTP_PORT: 8080
+
+  api:
+    build: .
+    command: ["/bin/api"]
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://meta:meta@postgres:5432/meta_gateway?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      NATS_URL: nats://nats:4222
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  worker:
+    build: .
+    command: ["/bin/worker"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://meta:meta@postgres:5432/meta_gateway?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      NATS_URL: nats://nats:4222
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+
+volumes:
+  pgdata:
