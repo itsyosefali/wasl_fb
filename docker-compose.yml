@@ -50,17 +50,28 @@ services:
     environment:
       HTTP_PORT: 8080
 
-  api:
+  api: &api-env
     build: .
     command: ["/bin/api"]
     ports:
       - "8080:8080"
-    env_file:
-      - .env
-    environment:
+    environment: &shared-env
       DATABASE_URL: postgres://meta:meta@postgres:5432/meta_gateway?sslmode=disable
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
+      META_APP_SECRET: ${META_APP_SECRET:-your-meta-app-secret}
+      META_VERIFY_TOKEN: ${META_VERIFY_TOKEN:-your-meta-verify-token}
+      META_GRAPH_VERSION: ${META_GRAPH_VERSION:-v23.0}
+      META_APP_ID: ${META_APP_ID:-}
+      META_OAUTH_REDIRECT_URL: ${META_OAUTH_REDIRECT_URL:-http://localhost:8080/auth/facebook/callback}
+      META_OAUTH_SCOPES: ${META_OAUTH_SCOPES:-pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management}
+      OAUTH_SUCCESS_REDIRECT: ${OAUTH_SUCCESS_REDIRECT:-}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:8080}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-100}
+      RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+      DELIVERY_MAX_ATTEMPTS: ${DELIVERY_MAX_ATTEMPTS:-5}
+      DELIVERY_BACKOFF_SECONDS: ${DELIVERY_BACKOFF_SECONDS:-1,5,30,120,600}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -78,12 +89,8 @@ services:
   worker:
     build: .
     command: ["/bin/worker"]
-    env_file:
-      - .env
     environment:
-      DATABASE_URL: postgres://meta:meta@postgres:5432/meta_gateway?sslmode=disable
-      REDIS_URL: redis://redis:6379/0
-      NATS_URL: nats://nats:4222
+      <<: *shared-env
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -99,8 +106,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://localhost:8080
-      VITE_API_KEY: demo-api-key-change-in-production
+      VITE_API_URL: ${API_PUBLIC_URL:-http://localhost:8080}
+      VITE_API_KEY: ${VITE_API_KEY:-demo-api-key-change-in-production}
       VITE_META_APP_ID: ${META_APP_ID:-}
     depends_on:
       api:
