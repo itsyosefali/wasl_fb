@@ -11,7 +11,9 @@ curl -sf "$API_URL/health" | grep -q '"status":"ok"' && echo "OK"
 echo "==> Connect page (skip if already connected)"
 PAGES=$(curl -sf -H "X-API-Key: $API_KEY" "$API_URL/pages")
 if echo "$PAGES" | grep -q '"meta_page_id":"123456789"'; then
-  echo "Page already connected"
+  echo "Demo verify page exists (optional cleanup: DELETE /pages/{id})"
+elif [ "$(echo "$PAGES" | grep -c meta_page_id || true)" -gt 0 ]; then
+  echo "Real page(s) already connected"
 else
   curl -sf -X POST "$API_URL/pages/connect" \
     -H "X-API-Key: $API_KEY" \

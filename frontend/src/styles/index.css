@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  @apply bg-n-solid-2 text-n-slate-12 font-sans;
+}
+
+@layer components {
+  .cw-sidebar-item {
+    @apply flex h-10 w-10 items-center justify-center rounded-lg text-n-slate-11 transition-colors hover:bg-n-solid-3 hover:text-n-slate-12;
+  }
+
+  .cw-sidebar-item.active {
+    @apply bg-woot-50 text-woot-600;
+  }
+
+  .cw-conversation-card {
+    @apply flex w-full cursor-pointer gap-3 border-b border-n-weak px-4 py-3 text-left transition-colors hover:bg-n-solid-3;
+  }
+
+  .cw-conversation-card.active {
+    @apply bg-n-solid-3;
+  }
+
+  .cw-message-in {
+    @apply max-w-[70%] rounded-2xl rounded-bl-sm bg-n-solid-3 px-4 py-2 text-sm leading-relaxed text-n-slate-12;
+  }
+
+  .cw-message-out {
+    @apply max-w-[70%] rounded-2xl rounded-br-sm bg-woot-500 px-4 py-2 text-sm leading-relaxed text-white;
+  }
+
+  .cw-reply-box {
+    @apply mx-4 mb-4 rounded-xl border border-n-weak bg-n-solid-1 shadow-card;
+  }
+
+  .cw-btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-woot-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-woot-600 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .cw-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-n-weak bg-n-solid-1 px-4 py-2 text-sm font-medium text-n-slate-12 transition hover:bg-n-solid-3;
+  }
+}

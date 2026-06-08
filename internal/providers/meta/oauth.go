@@ -31,6 +31,10 @@ func (c *OAuthClient) Configured() bool {
 	return c.appID != "" && c.appSecret != ""
 }
 
+func (c *OAuthClient) AppID() string {
+	return c.appID
+}
+
 // AuthorizeURL builds the Facebook OAuth dialog URL the user is redirected to.
 func (c *OAuthClient) AuthorizeURL(state, scopes string) string {
 	q := url.Values{}

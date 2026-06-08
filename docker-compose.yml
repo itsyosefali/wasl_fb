@@ -94,5 +94,17 @@ services:
       nats:
         condition: service_healthy
 
+  web:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8080
+      VITE_API_KEY: demo-api-key-change-in-production
+      VITE_META_APP_ID: ${META_APP_ID:-}
+    depends_on:
+      api:
+        condition: service_started
+
 volumes:
   pgdata:

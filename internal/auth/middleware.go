@@ -19,6 +19,9 @@ func Middleware(tenantRepo *db.TenantRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		apiKey := c.Get("X-API-Key")
 		if apiKey == "" {
+			apiKey = c.Query("api_key")
+		}
+		if apiKey == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "missing X-API-Key header",
 			})

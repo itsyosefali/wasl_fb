@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/nats-io/nats.go"
@@ -21,6 +22,8 @@ import (
 	"github.com/pop/erp_meta/internal/ingest"
 	actionmod "github.com/pop/erp_meta/internal/modules/actions"
 	"github.com/pop/erp_meta/internal/modules/comments"
+	"github.com/pop/erp_meta/internal/modules/connect"
+	"github.com/pop/erp_meta/internal/modules/conversations"
 	"github.com/pop/erp_meta/internal/modules/contacts"
 	eventmod "github.com/pop/erp_meta/internal/modules/events"
 	"github.com/pop/erp_meta/internal/modules/messages"
@@ -102,6 +105,7 @@ func New(cfg config.Config) (*App, error) {
 	contactRepo := db.NewContactRepo(pool)
 	messageRepo := db.NewMessageRepo(pool)
 	commentRepo := db.NewCommentRepo(pool)
+	conversationRepo := db.NewConversationRepo(pool)
 	webhookRepo := db.NewWebhookRepo(pool)
 	eventRepo := db.NewEventRepo(pool)
 
@@ -123,26 +127,35 @@ func New(cfg config.Config) (*App, error) {
 	})
 
 	app.Use(recover.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, X-API-Key, Authorization",
+		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+	}))
 	app.Use(logger.New())
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
 
+	connect.NewHandler(cfg.APIPublicURL, cfg.MetaAppID).Register(app)
+
 	webhook.NewHandler(cfg.MetaVerifyToken, ingestService, registry, redisClient).
 		Register(app.Group("/webhooks"))
 
 	oauthClient := metapkg.NewOAuthClient(cfg.MetaAppID, cfg.MetaAppSecret, cfg.MetaGraphVersion, cfg.MetaOAuthRedirectURL)
-	oauth.NewHandler(oauthClient, tenantRepo, pageRepo, store, encryptor, redisClient, cfg.MetaOAuthScopes, cfg.OAuthSuccessRedirect).
-		Register(app.Group("/auth"))
+	oauthHandler := oauth.NewHandler(oauthClient, tenantRepo, pageRepo, store, encryptor, redisClient, cfg.MetaOAuthScopes, cfg.OAuthSuccessRedirect)
+	oauthHandler.RegisterPublic(app.Group("/auth"))
 
 	authMiddleware := auth.Middleware(tenantRepo)
 	rateLimiter := auth.NewRateLimiter(redisClient, cfg.RateLimitRequests, cfg.RateLimitWindow())
 
 	api := app.Group("/", rateLimiter.Middleware(), authMiddleware)
+	oauthHandler.RegisterAuthed(api.Group("/auth"))
 
 	pages.NewHandler(pageRepo, store, encryptor).Register(api.Group("/pages"))
 	messages.NewHandler(messageRepo, pageRepo, contactRepo, store, registry, encryptor).Register(api.Group("/messages"))
+	conversations.NewHandler(conversationRepo).Register(api.Group("/conversations"))
 	comments.NewHandler(commentRepo, pageRepo, store, registry, encryptor).Register(api.Group("/comments"))
 	contacts.NewHandler(contactRepo).Register(api.Group("/contacts"))
 	webhooks.NewHandler(webhookRepo).Register(api.Group("/webhooks"))

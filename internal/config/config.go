@@ -24,8 +24,9 @@ type Config struct {
 
 	MetaAppID            string `envconfig:"META_APP_ID"`
 	MetaOAuthRedirectURL string `envconfig:"META_OAUTH_REDIRECT_URL" default:"http://localhost:8080/auth/facebook/callback"`
-	MetaOAuthScopes      string `envconfig:"META_OAUTH_SCOPES" default:"pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,instagram_basic,instagram_manage_messages,business_management"`
+	MetaOAuthScopes      string `envconfig:"META_OAUTH_SCOPES" default:"pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management"`
 	OAuthSuccessRedirect string `envconfig:"OAUTH_SUCCESS_REDIRECT"`
+	APIPublicURL         string `envconfig:"API_PUBLIC_URL" default:"http://localhost:8080"`
 
 	RateLimitRequests      int `envconfig:"RATE_LIMIT_REQUESTS" default:"100"`
 	RateLimitWindowSeconds int `envconfig:"RATE_LIMIT_WINDOW_SECONDS" default:"60"`
