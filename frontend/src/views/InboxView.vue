@@ -25,6 +25,7 @@ const messages = ref<ThreadMessage[]>([]);
 const loadingList = ref(true);
 const loadingThread = ref(false);
 const sending = ref(false);
+const sendError = ref('');
 
 function pickDefaultPage(list: Page[] | null | undefined): string | null {
   if (!list?.length) return null;
@@ -95,10 +96,13 @@ function selectConversation(conv: Conversation) {
 async function onSend(text: string) {
   if (!selected.value) return;
   sending.value = true;
+  sendError.value = '';
   try {
     await sendMessage(selected.value.page_id, selected.value.external_id, text);
     await refreshThread();
     await refreshConversations();
+  } catch (e) {
+    sendError.value = e instanceof Error ? e.message : 'Failed to send message';
   } finally {
     sending.value = false;
   }
@@ -144,6 +148,7 @@ onMounted(async () => {
       :messages="messages"
       :loading="loadingThread"
       :sending="sending"
+      :send-error="sendError"
       :stream-connected="streamConnected"
       @send="onSend"
     />

@@ -8,6 +8,7 @@ defineProps<{
   messages: import('@/api/gateway').ThreadMessage[];
   loading?: boolean;
   sending?: boolean;
+  sendError?: string;
   streamConnected?: boolean;
 }>();
 
@@ -62,6 +63,9 @@ function displayName(c: Conversation) {
       </header>
 
       <MessageList :messages="messages" :loading="loading" />
+      <p v-if="sendError" class="border-t border-n-weak bg-red-50 px-4 py-2 text-sm text-red-700">
+        {{ sendError }}
+      </p>
       <ReplyBox :disabled="sending" @send="emit('send', $event)" />
     </template>
   </div>

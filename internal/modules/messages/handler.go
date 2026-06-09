@@ -82,7 +82,8 @@ func (h *Handler) Send(c *fiber.Ctx) error {
 		PageID: page.MetaPageID, RecipientID: req.RecipientID, Text: req.Text, AccessToken: token,
 	})
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": err.Error()})
+		// Use 422 so proxies (Cloudflare) pass the JSON error body through; 502 is replaced with a generic HTML page.
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	contact, err := h.contactRepo.Upsert(c.Context(), models.Contact{
