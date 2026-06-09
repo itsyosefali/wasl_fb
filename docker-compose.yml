@@ -98,7 +98,8 @@ services:
   web:
     build: ./frontend
     environment:
-      VITE_API_URL: ${API_PUBLIC_URL:-http://localhost:8080}
+      VITE_API_URL: ${VITE_API_URL:-}
+      VITE_API_PROXY_TARGET: http://api:8080
       VITE_API_KEY: ${VITE_API_KEY:-demo-api-key-change-in-production}
       VITE_META_APP_ID: ${META_APP_ID:-}
     depends_on:

@@ -1,4 +1,11 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+function resolveApiUrl(): string {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  if (configured) return configured;
+  if (typeof window !== 'undefined') return window.location.origin;
+  return 'http://localhost:8080';
+}
+
+export const API_URL = resolveApiUrl();
 export const API_KEY = import.meta.env.VITE_API_KEY || 'demo-api-key-change-in-production';
 export const META_APP_ID = import.meta.env.VITE_META_APP_ID || '';
 
