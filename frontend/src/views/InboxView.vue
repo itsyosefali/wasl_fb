@@ -43,7 +43,7 @@ function pickDefaultPage(list: Page[] | null | undefined): string | null {
 async function loadPages() {
   try {
     const res = await listPages();
-    pages.value = res.data ?? [];
+    pages.value = res.data;
     if (!selectedPageId.value) {
       selectedPageId.value = pickDefaultPage(pages.value);
     }
@@ -60,12 +60,14 @@ async function refreshConversations() {
   }
   try {
     const res = await listConversations(selectedPageId.value);
-    conversations.value = res.data ?? [];
+    conversations.value = res.data;
     if (selected.value && selected.value.page_id !== selectedPageId.value) {
       selected.value = null;
       selectedKey.value = null;
       messages.value = [];
     }
+  } catch {
+    conversations.value = [];
   } finally {
     loadingList.value = false;
   }
@@ -129,9 +131,9 @@ onMounted(async () => {
 <template>
   <div class="flex h-full min-w-0">
     <ConversationList
-      :pages="pages"
+      :pages="pages ?? []"
       :selected-page-id="selectedPageId"
-      :conversations="conversations"
+      :conversations="conversations ?? []"
       :selected-key="selectedKey"
       :loading="loadingList"
       @select="selectConversation"

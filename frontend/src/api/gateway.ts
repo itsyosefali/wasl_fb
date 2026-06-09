@@ -69,8 +69,13 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function listPages() {
-  return api<{ data: Page[] }>('/pages');
+function withListData<T>(data: T[] | null | undefined): T[] {
+  return data ?? [];
+}
+
+export async function listPages() {
+  const res = await api<{ data: Page[] | null }>('/pages');
+  return { data: withListData(res.data) };
 }
 
 export function listFacebookPages(userAccessToken: string) {
@@ -95,15 +100,17 @@ export function registerFacebookPage(payload: {
   });
 }
 
-export function listConversations(pageId?: string) {
+export async function listConversations(pageId?: string) {
   const qs = pageId ? `?page_id=${encodeURIComponent(pageId)}` : '';
-  return api<{ data: Conversation[] }>(`/conversations${qs}`);
+  const res = await api<{ data: Conversation[] | null }>(`/conversations${qs}`);
+  return { data: withListData(res.data) };
 }
 
-export function listThreadMessages(contactId: string, pageId: string) {
-  return api<{ data: ThreadMessage[] }>(
+export async function listThreadMessages(contactId: string, pageId: string) {
+  const res = await api<{ data: ThreadMessage[] | null }>(
     `/conversations/${contactId}/messages?page_id=${pageId}`,
   );
+  return { data: withListData(res.data) };
 }
 
 export function sendMessage(pageId: string, recipientId: string, text: string) {

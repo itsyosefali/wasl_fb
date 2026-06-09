@@ -40,7 +40,7 @@ function displayName(c: Conversation) {
       @update:model-value="emit('update:selectedPageId', $event)"
     />
 
-    <div v-if="pages.length === 0 && !loading" class="flex flex-1 flex-col items-center justify-center px-6 text-center text-sm text-n-slate-11">
+    <div v-if="(pages?.length ?? 0) === 0 && !loading" class="flex flex-1 flex-col items-center justify-center px-6 text-center text-sm text-n-slate-11">
       <p>No Facebook Page connected.</p>
       <RouterLink to="/connect" class="mt-3 text-woot-500 hover:underline">
         Connect a Facebook Page
@@ -52,7 +52,7 @@ function displayName(c: Conversation) {
     </div>
 
     <div
-      v-else-if="conversations.length === 0"
+      v-else-if="(conversations?.length ?? 0) === 0"
       class="flex flex-1 flex-col items-center justify-center px-6 text-center text-sm text-n-slate-11"
     >
       <p>No conversations yet for this page.</p>
