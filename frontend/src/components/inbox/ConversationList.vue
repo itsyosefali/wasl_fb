@@ -1,16 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import type { Conversation, Page } from '@/api/gateway';
 import { formatTime } from '@/api/gateway';
 import InboxSelector from '@/components/inbox/InboxSelector.vue';
 
-defineProps<{
-  pages: Page[];
-  selectedPageId: string | null;
-  conversations: Conversation[];
-  selectedKey: string | null;
-  loading?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    pages?: Page[] | null;
+    selectedPageId: string | null;
+    conversations?: Conversation[] | null;
+    selectedKey: string | null;
+    loading?: boolean;
+  }>(),
+  {
+    pages: () => [],
+    conversations: () => [],
+  },
+);
+
+const pages = computed(() => props.pages ?? []);
+const conversations = computed(() => props.conversations ?? []);
 
 const emit = defineEmits<{
   select: [conversation: Conversation];

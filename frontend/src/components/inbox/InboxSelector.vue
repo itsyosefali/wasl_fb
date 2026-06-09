@@ -2,10 +2,15 @@
 import { computed } from 'vue';
 import type { Page } from '@/api/gateway';
 
-const props = defineProps<{
-  pages: Page[];
-  modelValue: string | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    pages?: Page[] | null;
+    modelValue: string | null;
+  }>(),
+  { pages: () => [] },
+);
+
+const pages = computed(() => props.pages ?? []);
 
 const emit = defineEmits<{
   'update:modelValue': [pageId: string];
@@ -17,7 +22,7 @@ const selectedPage = computed({
 });
 
 const currentPage = computed(() =>
-  props.pages.find((p) => p.id === props.modelValue),
+  pages.value.find((p) => p.id === props.modelValue),
 );
 </script>
 

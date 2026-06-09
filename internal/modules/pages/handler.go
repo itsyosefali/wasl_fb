@@ -47,6 +47,9 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
+	if pages == nil {
+		pages = []models.Page{}
+	}
 	for i := range pages {
 		pages[i].AccessToken = ""
 	}

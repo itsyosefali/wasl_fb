@@ -26,8 +26,8 @@ const loadingList = ref(true);
 const loadingThread = ref(false);
 const sending = ref(false);
 
-function pickDefaultPage(list: Page[]): string | null {
-  if (list.length === 0) return null;
+function pickDefaultPage(list: Page[] | null | undefined): string | null {
+  if (!list?.length) return null;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved && list.some((p) => p.id === saved)) return saved;
   const sorted = [...list].sort((a, b) => {
@@ -41,10 +41,14 @@ function pickDefaultPage(list: Page[]): string | null {
 }
 
 async function loadPages() {
-  const res = await listPages();
-  pages.value = res.data;
-  if (!selectedPageId.value) {
-    selectedPageId.value = pickDefaultPage(pages.value);
+  try {
+    const res = await listPages();
+    pages.value = res.data ?? [];
+    if (!selectedPageId.value) {
+      selectedPageId.value = pickDefaultPage(pages.value);
+    }
+  } catch {
+    pages.value = [];
   }
 }
 
@@ -75,7 +79,7 @@ async function refreshThread() {
       selected.value.contact_id,
       selected.value.page_id,
     );
-    messages.value = res.data;
+    messages.value = res.data ?? [];
   } finally {
     loadingThread.value = false;
   }
